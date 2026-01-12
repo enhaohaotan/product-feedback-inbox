@@ -4,6 +4,7 @@ import {
     Outlet,
     Scripts,
   } from "@remix-run/react";
+import "./style.css";
   
   export default function App() {
     return (
@@ -17,7 +18,7 @@ import {
           <Links />
         </head>
         <body>
-          <h1>Hello world!</h1>
+          <h1 className="underline">Hello world!</h1>
           <Outlet />
   
           <Scripts />
