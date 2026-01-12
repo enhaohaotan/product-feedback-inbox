@@ -1,0 +1,25 @@
+{
+  "name": "product-feedback-inbox",
+  "version": "1.0.0",
+  "description": "Code Exercise — Product Feedback Inbox (Remix + Postgres) A small feature where users can submit product feedback and the team can browse it like an inbox.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remix-run/node": "^2.17.4",
+    "@remix-run/react": "^2.17.4",
+    "@remix-run/serve": "^2.17.4",
+    "isbot": "^4.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^2.17.4",
+    "vite": "^6.4.1"
+  }
+}
