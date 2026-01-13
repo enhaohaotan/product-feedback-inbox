@@ -78,7 +78,7 @@ export default function NewFeedback() {
   function getError(name: string) {
     return (
       <p className="text-red-500 text-xs">
-        {serverErrors[name] ?? clientErrors[name]}
+        {clientErrors[name] ?? serverErrors[name]}
       </p>
     );
   }
