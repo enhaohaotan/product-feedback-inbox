@@ -4,7 +4,7 @@ export const FormValuesSchema = z.object({
   title: z
     .string()
     .min(5, { message: "Title must be at least 5 characters" })
-    .max(8, { message: "Title must be at most 8 characters" }),
+    .max(80, { message: "Title must be at most 8 characters" }),
   message: z
     .string()
     .min(20, { message: "Message must be at least 20 characters" })

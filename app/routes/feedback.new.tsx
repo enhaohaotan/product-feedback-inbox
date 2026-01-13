@@ -8,6 +8,7 @@ import {
 import { FormValuesSchema, FormValuesType } from "../validators/form.schema";
 import { useEffect, useState } from "react";
 import { toFormValues } from "../types/Form";
+import { createFeedback } from "../repositories/feedback.repo";
 
 export async function action({ request }: ActionFunctionArgs) {
   const fd = await request.formData();
@@ -23,12 +24,12 @@ export async function action({ request }: ActionFunctionArgs) {
       }
       return json({ serverErrors, values }, { status: 400 });
     }
-    const input: FormValuesType = result.data;
-
-    // TODO: chech if single email
-    // TODO: Save to database
-    return redirect("/feedback");
   }
+  const input: FormValuesType = result.data;
+  // TODO: chech if single email
+  // TODO: Save to database
+  await createFeedback(input);
+  return redirect("/feedback");
 }
 
 export default function NewFeedback() {
@@ -95,8 +96,6 @@ export default function NewFeedback() {
       <h1 className="text-2xl font-bold my-8">New Feedback</h1>
       <Form
         method="post"
-        _action="new"
-        action="/feedback/blabla"
         replace
         className="flex flex-col gap-4 w-1/2"
         onSubmit={(e) => {
