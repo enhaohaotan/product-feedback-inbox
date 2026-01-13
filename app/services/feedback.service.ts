@@ -11,6 +11,17 @@ export async function createFeedbackService(input: RawFeedbackType) {
     }
     return { success: false, serverErrors, data: parsed.data };
   }
-  const result = await feedbackRepo.createFeedbackRepo(parsed.data);
-  return { success: true, data: result };
+  try {
+    const result = await feedbackRepo.createFeedbackRepo(parsed.data);
+    return { success: true, data: result };
+  } catch (error) {
+    if (error.message === "EMAIL_ALREADY_EXISTS") {
+      return {
+        success: false,
+        serverErrors: { email: "Email already exists" },
+        data: parsed.data,
+      };
+    }
+    throw error;
+  }
 }
