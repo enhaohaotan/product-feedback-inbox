@@ -5,33 +5,30 @@ import {
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
-import { feedbackSchema } from "../validators/feedback";
+import { FormValuesSchema, FormValuesType } from "../validators/form.schema";
 import { useEffect, useState } from "react";
+import { toFormValues } from "../types/Form";
 
 export async function action({ request }: ActionFunctionArgs) {
   const fd = await request.formData();
-  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
-  const values = {
-    title: String(fd.get("title") ?? ""),
-    message: String(fd.get("message") ?? ""),
-    category: String(fd.get("category") ?? ""),
-    email: String(fd.get("email") ?? ""),
-    priority: String(fd.get("priority") ?? ""),
-  };
+  const values = toFormValues(fd);
 
   // validate all fields plus unique email
-  const result = feedbackSchema.safeParse(values);
-  if (result.success) {
+  const result = FormValuesSchema.safeParse(values);
+  if (!result.success) {
+    const serverErrors: Record<string, string> = {};
+    for (const issue of result.error.issues) {
+      for (const issue of result.error.issues) {
+        serverErrors[String(issue.path[0])] = issue.message;
+      }
+      return json({ serverErrors, values }, { status: 400 });
+    }
+    const input: FormValuesType = result.data;
+
     // TODO: chech if single email
     // TODO: Save to database
     return redirect("/feedback");
   }
-
-  // validation failed
-  for (const issue of result.error.issues) {
-    setServerErrors((prev) => ({ ...prev, [issue.path[0]]: issue.message }));
-  }
-  return json({ serverErrors, values }, { status: 400 });
 }
 
 export default function NewFeedback() {
@@ -59,7 +56,7 @@ export default function NewFeedback() {
       email: String(fd.get("email") ?? ""),
       priority: String(fd.get("priority") ?? ""),
     };
-    const result = feedbackSchema.safeParse(values);
+    const result = FormValuesSchema.safeParse(values);
     if (result.success) {
       setClientErrors({});
       return true;
@@ -70,17 +67,16 @@ export default function NewFeedback() {
     return false;
   }
 
-  function validateField(name: string, value: string) {
-    const fieldSchema = feedbackSchema.pick({ [name]: true } as any);
-    const result = fieldSchema.safeParse({ [name]: value });
+  function validateField(name: keyof FormValuesType, value: string) {
+    const fieldSchema = FormValuesSchema.shape[name];
+    const result = fieldSchema.safeParse(value);
 
     setClientErrors((prev) => {
       const next = { ...prev };
       if (result.success) {
         delete next[name];
       } else {
-        next[name] =
-          result.error.flatten().fieldErrors[name]?.[0] ?? "Invalid field";
+        next[name] = result.error.issues[0]?.message ?? "Invalid field";
       }
       return next;
     });

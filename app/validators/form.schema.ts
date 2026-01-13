@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const feedbackSchema = z.object({
+export const FormValuesSchema = z.object({
   title: z
     .string()
     .min(5, { message: "Title must be at least 5 characters" })
@@ -13,3 +13,5 @@ export const feedbackSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
   priority: z.enum(["low", "medium", "high"]),
 });
+
+export type FormValuesType = z.infer<typeof FormValuesSchema>;
