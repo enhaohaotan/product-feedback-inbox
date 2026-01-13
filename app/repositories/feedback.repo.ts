@@ -1,7 +1,7 @@
+import { FeedbackDomainType, toFeedbackDomainType } from "../types/Feedback";
 import { query } from "../utils/db.server";
-import { FormValuesType } from "../validators/form.schema";
 
-export async function createFeedback(feedback: FormValuesType) {
+export async function createFeedbackRepo(feedback: FeedbackDomainType) {
   const result = await query(
     `INSERT INTO feedbacks (title, message, category, email, priority) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
     [
@@ -12,6 +12,7 @@ export async function createFeedback(feedback: FormValuesType) {
       feedback.priority,
     ]
   );
-  console.log(result);
-  return result[0];
+
+  const feedbackDomain = toFeedbackDomainType(result[0]);
+  return feedbackDomain;
 }

@@ -5,30 +5,22 @@ import {
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
-import { FormValuesSchema, FormValuesType } from "../validators/form.schema";
+import { FeedbackSchema, FeedbackType } from "../validators/feedback.schema";
 import { useEffect, useState } from "react";
-import { toFormValues } from "../types/Form";
-import { createFeedback } from "../repositories/feedback.repo";
+import { toRawFeedbackType } from "../types/Feedback";
+import { createFeedbackService } from "../services/feedback.service";
 
 export async function action({ request }: ActionFunctionArgs) {
   const fd = await request.formData();
-  const values = toFormValues(fd);
-
-  // validate all fields plus unique email
-  const result = FormValuesSchema.safeParse(values);
+  const values = toRawFeedbackType(fd);
+  const result = await createFeedbackService(values);
   if (!result.success) {
-    const serverErrors: Record<string, string> = {};
-    for (const issue of result.error.issues) {
-      for (const issue of result.error.issues) {
-        serverErrors[String(issue.path[0])] = issue.message;
-      }
-      return json({ serverErrors, values }, { status: 400 });
-    }
+    return json(
+      { serverErrors: result.serverErrors, values: result.data },
+      { status: 400 }
+    );
   }
-  const input: FormValuesType = result.data;
-  // TODO: chech if single email
-  // TODO: Save to database
-  await createFeedback(input);
+  console.log(result.data);
   return redirect("/feedback");
 }
 
@@ -57,7 +49,7 @@ export default function NewFeedback() {
       email: String(fd.get("email") ?? ""),
       priority: String(fd.get("priority") ?? ""),
     };
-    const result = FormValuesSchema.safeParse(values);
+    const result = FeedbackSchema.safeParse(values);
     if (result.success) {
       setClientErrors({});
       return true;
@@ -68,8 +60,8 @@ export default function NewFeedback() {
     return false;
   }
 
-  function validateField(name: keyof FormValuesType, value: string) {
-    const fieldSchema = FormValuesSchema.shape[name];
+  function validateField(name: keyof FeedbackType, value: string) {
+    const fieldSchema = FeedbackSchema.shape[name];
     const result = fieldSchema.safeParse(value);
 
     setClientErrors((prev) => {
@@ -96,7 +88,6 @@ export default function NewFeedback() {
       <h1 className="text-2xl font-bold my-8">New Feedback</h1>
       <Form
         method="post"
-        replace
         className="flex flex-col gap-4 w-1/2"
         onSubmit={(e) => {
           const formData = e.currentTarget;
