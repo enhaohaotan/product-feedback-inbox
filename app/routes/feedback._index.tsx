@@ -1,4 +1,10 @@
-import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useLoaderData,
+  useLocation,
+  useSearchParams,
+} from "@remix-run/react";
 import SelectFieldFilter from "../components/SelectFieldFilter";
 import {
   FEEDBACK_CATEGORIES,
@@ -24,24 +30,25 @@ export async function action({ request }: ActionFunctionArgs) {
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
-  const search = searchParams.get("q") ?? "";
+  const q = searchParams.get("q") ?? "";
   const page = searchParams.get("page") ?? "1";
   const pageSize = searchParams.get("pagesize") ?? "10";
-  const category = searchParams.get("category") ?? "";
-  const priority = searchParams.get("priority") ?? "";
+  const category = searchParams.get("category") ?? "all";
+  const priority = searchParams.get("priority") ?? "all";
   const total = 100;
   const start = (Number(page) - 1) * Number(pageSize) + 1;
   const end = Math.min(Number(page) * Number(pageSize), total);
 
-  return { search, page, pageSize, category, priority, total, start, end };
+  return { q, page, pageSize, category, priority, total, start, end };
 }
 
 export default function FeedbackView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date("2024-01-01T00:00:00.000Z");
 
-  const { search, page, pageSize, category, priority, total, start, end } =
+  const { q, page, pageSize, category, priority, total, start, end } =
     useLoaderData<typeof loader>();
+  const location = useLocation();
   const emptyFeedback = [];
   const feedbacks = [
     {
@@ -94,23 +101,30 @@ export default function FeedbackView() {
             <p className="text-sm text-gray-500 whitespace-nowrap">
               Filter by:
             </p>
-            <Form method="get" className="flex gap-4">
+            <Form key={location.search} method="get" className="flex gap-4">
               <input type="hidden" name="page" value="1" />
-              <InputFieldFilter name="q" placeholder="Search" />
+              <InputFieldFilter
+                name="q"
+                placeholder="Search"
+                defaultValue={q}
+              />
               <SelectFieldFilter
                 name="category"
                 label="Category"
-                options={FEEDBACK_CATEGORIES}
+                options={["all", ...FEEDBACK_CATEGORIES]}
+                defaultValue={category}
               />
               <SelectFieldFilter
                 name="priority"
                 label="Priority"
-                options={FEEDBACK_PRIORITIES}
+                options={["all", ...FEEDBACK_PRIORITIES]}
+                defaultValue={priority}
               />
               <SelectFieldFilter
                 name="pagesize"
                 label="Page Size"
                 options={PAGESIZE}
+                defaultValue={pageSize}
               />
               <Button type="submit">Apply</Button>
               <Button asChild>
