@@ -2,7 +2,7 @@ import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { CreateFeedbackSchema } from "../schemas/feedback.schema";
 import { CreateFeedback } from "../types/Feedback";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createFeedbackService } from "../services/feedback.service";
 import InputField from "../components/InputField";
 import SelectField from "../components/SelectField";
@@ -70,7 +70,7 @@ export default function NewFeedback() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen ">
+    <div className="flex flex-col items-center h-screen justify-start my-8">
       <h1 className="text-2xl font-bold my-8">New Feedback</h1>
       <Form
         method="post"
