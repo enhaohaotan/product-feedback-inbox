@@ -60,7 +60,9 @@ export async function getFeedbacksRepo({
       whereClause.length > 0 ? `WHERE ${whereClause.join(" AND ")}` : "";
 
     const result = await query(
-      `SELECT * 
+      `SELECT 
+        *,
+        COUNT(*) OVER() AS total
        FROM feedbacks 
        ${whereClauseString} 
        ORDER BY created_at DESC 

@@ -2,7 +2,7 @@ import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { CreateFeedbackSchema } from "../schemas/feedback.schema";
 import { CreateFeedback } from "../types/Feedback";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFeedbackService } from "../services/feedback.service";
 import InputField from "../components/InputField";
 import SelectField from "../components/SelectField";
@@ -32,6 +32,14 @@ export default function NewFeedback() {
   const serverErrors = actionData?.serverErrors ?? {};
   const [hasClientErrors, setHasClientErrors] = useState(false);
 
+  useEffect(() => {
+    if (Object.keys(clientErrors).length > 0) {
+      setHasClientErrors(true);
+    } else {
+      setHasClientErrors(false);
+    }
+  }, [clientErrors]);
+
   function validateAllFields(form: HTMLFormElement) {
     const fd = new FormData(form);
     const values = {
@@ -44,11 +52,9 @@ export default function NewFeedback() {
     const result = CreateFeedbackSchema.safeParse(values);
     if (result.success) {
       setClientErrors({});
-      setHasClientErrors(false);
     }
     for (const issue of result.error.issues) {
       setClientErrors((prev) => ({ ...prev, [issue.path[0]]: issue.message }));
-      setHasClientErrors(true);
     }
     return false;
   }
@@ -66,7 +72,6 @@ export default function NewFeedback() {
       }
       return next;
     });
-    setHasClientErrors(true);
   }
 
   return (

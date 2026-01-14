@@ -51,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Error(feedbacks.errors.join(", "));
   }
 
-  const total = 100;
+  const total = feedbacks.data[0].total;
   const start = (page - 1) * Number(pageSize) + 1;
   const end = Math.min(page * Number(pageSize), total);
 
@@ -90,7 +90,7 @@ export default function FeedbackView() {
       <header className="flex items-center justify-center">
         <h1 className="text-2xl font-bold">Product Feedback</h1>
       </header>
-      <main className="flex flex-col gap-4">
+      <main className="flex flex-col gap-2">
         {/* Filter Bar */}
         <div className="flex flex-col gap-4 items-start">
           <Button asChild>
@@ -134,7 +134,7 @@ export default function FeedbackView() {
         </div>
         {/* Results Summary */}
         <div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 mt-6">
             Showing {start}-{end} of {total} results
           </p>
         </div>
