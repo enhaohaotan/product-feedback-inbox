@@ -1,6 +1,5 @@
-import { CreateFeedback, Feedback } from "../types/Feedback";
+import { CreateFeedback, FeedbackFilters } from "../types/Feedback";
 import { query } from "../db/db.server";
-
 export async function createFeedbackRepo(createFeedback: CreateFeedback) {
   try {
     const result = await query(
@@ -13,12 +12,64 @@ export async function createFeedbackRepo(createFeedback: CreateFeedback) {
         createFeedback.priority,
       ]
     );
-
     return result[0];
   } catch (error) {
     if (error.code === "23505") {
       throw new Error("EMAIL_ALREADY_EXISTS");
     }
+    throw error;
+  }
+}
+
+export async function getFeedbacksRepo({
+  q,
+  page,
+  pageSize,
+  category,
+  priority,
+}: FeedbackFilters) {
+  try {
+    const whereClause = [];
+    const values = [];
+
+    if (q) {
+      values.push(`%${q}%`);
+      whereClause.push(
+        `title ILIKE $${values.length} OR message ILIKE $${values.length}`
+      );
+    }
+    if (category !== "all") {
+      values.push(category);
+      whereClause.push(`category = $${values.length}`);
+    }
+    if (priority !== "all") {
+      values.push(priority);
+      whereClause.push(`priority = $${values.length}`);
+    }
+
+    const limit = Number(pageSize);
+    const pageNum = Number(page);
+    const offset = (Math.max(pageNum, 1) - 1) * limit;
+
+    values.push(limit);
+    const limitPlaceHolder = `$${values.length}`;
+    values.push(offset);
+    const offsetPlaceHolder = `$${values.length}`;
+
+    const whereClauseString =
+      whereClause.length > 0 ? `WHERE ${whereClause.join(" AND ")}` : "";
+
+    const result = await query(
+      `SELECT * 
+       FROM feedbacks 
+       ${whereClauseString} 
+       ORDER BY created_at DESC 
+       LIMIT ${limitPlaceHolder} 
+       OFFSET ${offsetPlaceHolder}`,
+      values
+    );
+    return result;
+  } catch (error) {
     throw error;
   }
 }

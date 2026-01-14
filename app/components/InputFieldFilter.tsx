@@ -1,4 +1,9 @@
-export default function InputFieldFilter({ type = "text", name, placeholder }) {
+export default function InputFieldFilter({
+  type = "text",
+  name,
+  placeholder,
+  defaultValue,
+}) {
   return (
     <div className="flex gap-2 items-center">
       <input
@@ -7,6 +12,7 @@ export default function InputFieldFilter({ type = "text", name, placeholder }) {
         id={name}
         className="border border-gray-300 rounded-sm px-2 py-1 text-sm"
         placeholder={placeholder}
+        defaultValue={defaultValue}
       />
     </div>
   );

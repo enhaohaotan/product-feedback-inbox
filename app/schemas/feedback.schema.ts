@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   FEEDBACK_CATEGORIES,
   FEEDBACK_PRIORITIES,
+  PAGESIZE,
 } from "../constants/feedback.constants";
 
 export const CreateFeedbackSchema = z.object({
@@ -22,4 +23,12 @@ export const FeedbackSchema = CreateFeedbackSchema.extend({
   id: z.uuid(),
   created_at: z.date(),
   updated_at: z.date(),
+});
+
+export const FeedbackFiltersSchema = z.object({
+  q: z.string(),
+  page: z.number(),
+  pageSize: z.enum(PAGESIZE),
+  category: z.enum([...FEEDBACK_CATEGORIES, "all"]),
+  priority: z.enum([...FEEDBACK_PRIORITIES, "all"]),
 });
