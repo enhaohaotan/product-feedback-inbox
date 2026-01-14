@@ -20,15 +20,6 @@ import FeedbackCard from "../components/FeedbackCard";
 import { Feedback } from "../types/Feedback";
 import { getFeedbacksService } from "../services/feedback.service";
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const title = formData.get("title");
-  const message = formData.get("message");
-  const email = formData.get("email");
-  const category = formData.get("category");
-  const priority = formData.get("priority");
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
@@ -70,7 +61,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function FeedbackView() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const now = new Date("2024-01-01T00:00:00.000Z");
 
   const {
     feedbacks,
@@ -83,7 +73,6 @@ export default function FeedbackView() {
     category,
     priority,
   } = useLoaderData<typeof loader>();
-  const location = useLocation();
 
   return (
     <div className="flex flex-col gap-8 h-screen items-center justify-start my-8 ">
@@ -100,7 +89,7 @@ export default function FeedbackView() {
             <p className="text-sm text-gray-500 whitespace-nowrap">
               Filter by:
             </p>
-            <Form key={location.search} method="get" className="flex gap-4">
+            <Form method="get" className="flex gap-4">
               <input type="hidden" name="page" value="1" />
               <InputFieldFilter
                 name="q"
@@ -126,8 +115,18 @@ export default function FeedbackView() {
                 defaultValue={pageSize}
               />
               <Button type="submit">Apply</Button>
-              <Button asChild>
-                <Link to="/feedback">Clear</Link>
+              <Button
+                type="reset"
+                onClick={() => {
+                  searchParams.delete("page");
+                  searchParams.delete("q");
+                  searchParams.delete("category");
+                  searchParams.delete("priority");
+                  searchParams.delete("pagesize");
+                  setSearchParams(searchParams);
+                }}
+              >
+                Clear
               </Button>
             </Form>
           </div>
