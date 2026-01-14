@@ -14,9 +14,7 @@ export default function FeedbackCard({
       <p className="text-sm text-gray-500">{feedback.email}</p>
       <p className="text-sm text-gray-500">{feedback.category}</p>
       <p className="text-sm text-gray-500">{feedback.priority}</p>
-      <p className="text-sm text-gray-500">
-        {feedback.created_at.toLocaleDateString()}
-      </p>
+      <p className="text-sm text-gray-500">{feedback.created_at}</p>
     </div>
   );
 }

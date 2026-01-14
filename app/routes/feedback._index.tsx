@@ -1,5 +1,6 @@
 import {
   Form,
+  json,
   Link,
   useLoaderData,
   useLocation,
@@ -17,6 +18,7 @@ import { useEffect, useState } from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import FeedbackCard from "../components/FeedbackCard";
 import { Feedback } from "../types/Feedback";
+import { getFeedbacksService } from "../services/feedback.service";
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -30,61 +32,58 @@ export async function action({ request }: ActionFunctionArgs) {
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
+
   const q = searchParams.get("q") ?? "";
-  const page = searchParams.get("page") ?? "1";
+  const page = Number(searchParams.get("page") ?? "1");
   const pageSize = searchParams.get("pagesize") ?? "10";
   const category = searchParams.get("category") ?? "all";
   const priority = searchParams.get("priority") ?? "all";
-  const total = 100;
-  const start = (Number(page) - 1) * Number(pageSize) + 1;
-  const end = Math.min(Number(page) * Number(pageSize), total);
 
-  return { q, page, pageSize, category, priority, total, start, end };
+  const feedbacks = await getFeedbacksService({
+    q,
+    page,
+    pageSize,
+    category,
+    priority,
+  });
+
+  if (!feedbacks.success) {
+    throw new Error(feedbacks.errors.join(", "));
+  }
+
+  const total = 100;
+  const start = (page - 1) * Number(pageSize) + 1;
+  const end = Math.min(page * Number(pageSize), total);
+
+  return json({
+    feedbacks: feedbacks.data,
+    total,
+    start,
+    end,
+    q,
+    page,
+    pageSize,
+    category,
+    priority,
+  });
 }
 
 export default function FeedbackView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date("2024-01-01T00:00:00.000Z");
 
-  const { q, page, pageSize, category, priority, total, start, end } =
-    useLoaderData<typeof loader>();
+  const {
+    feedbacks,
+    total,
+    start,
+    end,
+    q,
+    page,
+    pageSize,
+    category,
+    priority,
+  } = useLoaderData<typeof loader>();
   const location = useLocation();
-  const emptyFeedback = [];
-  const feedbacks = [
-    {
-      id: "1",
-      title: "Feedback 1",
-      message:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
-      email: "test@test.com",
-      category: "Feature",
-      priority: "Low",
-      created_at: now,
-      updated_at: now,
-    },
-    {
-      id: "2",
-      title: "Feedback 2",
-      message:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
-      email: "test@test.com",
-      category: "Feature",
-      priority: "Low",
-      created_at: now,
-      updated_at: now,
-    },
-    {
-      id: "3",
-      title: "Feedback 3",
-      message:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
-      email: "test@test.com",
-      category: "Feature",
-      priority: "Low",
-      created_at: now,
-      updated_at: now,
-    },
-  ];
 
   return (
     <div className="flex flex-col gap-8 h-screen items-center justify-start my-8 ">
