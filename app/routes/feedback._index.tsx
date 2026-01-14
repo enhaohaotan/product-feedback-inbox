@@ -1,4 +1,4 @@
-import { Form, Link, useSearchParams } from "@remix-run/react";
+import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import SelectFieldFilter from "../components/SelectFieldFilter";
 import {
   FEEDBACK_CATEGORIES,
@@ -18,13 +18,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const pageSize = searchParams.get("pagesize") ?? "10";
   const category = searchParams.get("category") ?? "";
   const priority = searchParams.get("priority") ?? "";
+  const total = 100;
+  const start = (Number(page) - 1) * Number(pageSize) + 1;
+  const end = Math.min(Number(page) * Number(pageSize), total);
 
-  return { search, page, pageSize, category, priority };
+  return { search, page, pageSize, category, priority, total, start, end };
 }
 
 export default function FeedbackView() {
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const { search, page, pageSize, category, priority, total, start, end } =
+    useLoaderData<typeof loader>();
   return (
     <div className="flex flex-col gap-8 h-screen items-center justify-start my-8 ">
       <header className="flex items-center justify-center">
@@ -63,6 +67,11 @@ export default function FeedbackView() {
               </Button>
             </Form>
           </div>
+        </div>
+        <div>
+          <p className="text-sm text-gray-500">
+            Showing {start}-{end} of {total} results
+          </p>
         </div>
         <h2 className="text-lg font-bold">Feedback list</h2>
       </main>
