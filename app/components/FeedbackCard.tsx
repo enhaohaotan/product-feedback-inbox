@@ -29,7 +29,7 @@ export default function FeedbackCard({
       <div className="flex flex-col mt-2">
         <p className="text-xs truncate">{feedback.email}</p>
         <p className="text-xs text-gray-500">
-          {new Intl.DateTimeFormat("en-US", {
+          {new Intl.DateTimeFormat("da-DK", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
