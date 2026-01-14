@@ -1,21 +1,20 @@
-import { FeedbackDomainType, toFeedbackDomainType } from "../types/Feedback";
-import { query } from "../utils/db.server";
+import { CreateFeedback, Feedback } from "../types/Feedback";
+import { query } from "../db/db.server";
 
-export async function createFeedbackRepo(feedback: FeedbackDomainType) {
+export async function createFeedbackRepo(createFeedback: CreateFeedback) {
   try {
     const result = await query(
       `INSERT INTO feedbacks (title, message, category, email, priority) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [
-        feedback.title,
-        feedback.message,
-        feedback.category,
-        feedback.email,
-        feedback.priority,
+        createFeedback.title,
+        createFeedback.message,
+        createFeedback.category,
+        createFeedback.email,
+        createFeedback.priority,
       ]
     );
 
-    const feedbackDomain = toFeedbackDomainType(result[0]);
-    return feedbackDomain;
+    return result[0];
   } catch (error) {
     if (error.code === "23505") {
       throw new Error("EMAIL_ALREADY_EXISTS");

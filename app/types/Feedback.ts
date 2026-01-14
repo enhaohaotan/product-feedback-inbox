@@ -1,45 +1,19 @@
-export type RawFeedbackType = {
-  title: string | null;
-  message: string | null;
-  category: string | null;
-  email: string | null;
-  priority: string | null;
-};
+import { z } from "zod";
+import {
+  CreateFeedbackSchema,
+  FeedbackSchema,
+} from "../schemas/feedback.schema";
 
-export type FeedbackDBType = {
-  id: number;
-  title: string;
-  message: string;
-  category: "bug" | "feature" | "billing" | "other";
-  email: string;
-  priority: "low" | "medium" | "high";
-  created_at: Date;
-  updated_at: Date;
-};
+export type CreateFeedback = z.infer<typeof CreateFeedbackSchema>;
 
-export type FeedbackDomainType = {
-  title: string;
-  message: string;
-  category: "bug" | "feature" | "billing" | "other";
-  email: string;
-  priority: "low" | "medium" | "high";
-};
+export type Feedback = z.infer<typeof FeedbackSchema>;
 
-export function toFeedbackDomainType(db: FeedbackDBType): FeedbackDomainType {
-  return {
-    title: db.title,
-    message: db.message,
-    category: db.category,
-    email: db.email,
-    priority: db.priority,
-  };
-}
-export function toRawFeedbackType(fd: FormData): RawFeedbackType {
-  return {
-    title: fd.get("title")?.toString() ?? null,
-    message: fd.get("message")?.toString() ?? null,
-    category: fd.get("category")?.toString() ?? null,
-    email: fd.get("email")?.toString() ?? null,
-    priority: fd.get("priority")?.toString() ?? null,
-  };
-}
+// export function toCreateFeedbackType(db: Feedback): CreateFeedback {
+//   return {
+//     title: db.title,
+//     message: db.message,
+//     category: db.category,
+//     email: db.email,
+//     priority: db.priority,
+//   };
+// }

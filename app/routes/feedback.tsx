@@ -7,5 +7,3 @@ export default function Feedback() {
     </div>
   );
 }
-// routeA.routeB.routeC_.routeD -> routeA/routeB/routeC/routeD
-// routeA.routeB.routeC.routeD.routeE -> routeA/routeB/routeC/routeD/routeE

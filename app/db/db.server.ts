@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-import { hostname } from "zod";
 
 const pool = new Pool({
   hostname: process.env.DB_HOST,

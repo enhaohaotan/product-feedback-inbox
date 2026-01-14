@@ -1,26 +1,26 @@
 import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation,
-} from "@remix-run/react";
-import { FeedbackSchema, FeedbackType } from "../validators/feedback.schema";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
+import { CreateFeedbackSchema } from "../schemas/feedback.schema";
+import { CreateFeedback } from "../types/Feedback";
 import { useEffect, useState } from "react";
-import { toRawFeedbackType } from "../types/Feedback";
 import { createFeedbackService } from "../services/feedback.service";
+import InputField from "../components/InputField";
+import SelectField from "../components/SelectField";
+import TextareaField from "../components/TextareaField";
+import {
+  FEEDBACK_CATEGORIES,
+  FEEDBACK_PRIORITIES,
+} from "../constants/feedback.constants";
 
 export async function action({ request }: ActionFunctionArgs) {
   const fd = await request.formData();
-  const values = toRawFeedbackType(fd);
-  const result = await createFeedbackService(values);
+  const result = await createFeedbackService(fd);
   if (!result.success) {
     return json(
-      { serverErrors: result.serverErrors, values: result.data },
+      { serverErrors: result.serverErrors, data: result.data },
       { status: 400 }
     );
   }
-  console.log(result.data);
   return redirect("/feedback");
 }
 
@@ -30,15 +30,7 @@ export default function NewFeedback() {
   const isSubmitting = nav.state === "submitting";
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const serverErrors = actionData?.serverErrors ?? {};
-  const [canSubmit, setCanSubmit] = useState(false);
-
-  useEffect(() => {
-    if (Object.keys(clientErrors).length > 0) {
-      setCanSubmit(false);
-    } else {
-      setCanSubmit(true);
-    }
-  }, [clientErrors]);
+  const [hasClientErrors, setHasClientErrors] = useState(false);
 
   function validateAllFields(form: HTMLFormElement) {
     const fd = new FormData(form);
@@ -49,19 +41,20 @@ export default function NewFeedback() {
       email: String(fd.get("email") ?? ""),
       priority: String(fd.get("priority") ?? ""),
     };
-    const result = FeedbackSchema.safeParse(values);
+    const result = CreateFeedbackSchema.safeParse(values);
     if (result.success) {
       setClientErrors({});
-      return true;
+      setHasClientErrors(false);
     }
     for (const issue of result.error.issues) {
       setClientErrors((prev) => ({ ...prev, [issue.path[0]]: issue.message }));
+      setHasClientErrors(true);
     }
     return false;
   }
 
-  function validateField(name: keyof FeedbackType, value: string) {
-    const fieldSchema = FeedbackSchema.shape[name];
+  function validateField(name: keyof CreateFeedback, value: string) {
+    const fieldSchema = CreateFeedbackSchema.shape[name];
     const result = fieldSchema.safeParse(value);
 
     setClientErrors((prev) => {
@@ -73,14 +66,7 @@ export default function NewFeedback() {
       }
       return next;
     });
-  }
-
-  function getError(name: string) {
-    return (
-      <p className="text-red-500 text-xs">
-        {clientErrors[name] ?? serverErrors[name]}
-      </p>
-    );
+    setHasClientErrors(true);
   }
 
   return (
@@ -94,90 +80,53 @@ export default function NewFeedback() {
           const ok = validateAllFields(formData);
           if (!ok) {
             e.preventDefault();
+            throw new Error("Cannot submit form");
           }
         }}
       >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="title" className="text-sm text-gray-500">
-            Title
-          </label>
-          <input
-            type="text"
-            name="title"
-            id="title"
-            className="border border-gray-300 rounded-sm px-2 py-1 text-sm"
-            defaultValue={actionData?.values?.title ?? ""}
-            onBlur={(e) => validateField("title", e.currentTarget.value)}
-          />
-          {getError("title")}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="message" className="text-sm text-gray-500">
-            Message
-          </label>
-          <textarea
-            name="message"
-            id="message"
-            className="border border-gray-300 rounded-sm px-2 py-1 text-sm"
-            defaultValue={actionData?.values.message ?? ""}
-            onBlur={(e) => validateField("message", e.currentTarget.value)}
-          />
-          {getError("message")}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="category" className="text-sm text-gray-500">
-            Category
-          </label>
-          <select
-            name="category"
-            id="category"
-            className="border border-gray-300 rounded-sm px-2 py-1 text-sm"
-            defaultValue={actionData?.values?.category ?? ""}
-          >
-            <option value="bug">bug</option>
-            <option value="feature">feature</option>
-            <option value="billing">billing</option>
-            <option value="other">other</option>
-          </select>
-          {getError("category")}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm text-gray-500">
-            Email
-          </label>
-          <input
-            type="text"
-            name="email"
-            id="email"
-            className="border border-gray-300 rounded-sm px-2 py-1 text-sm"
-            defaultValue={actionData?.values?.email ?? ""}
-            onBlur={(e) => validateField("email", e.currentTarget.value)}
-          />
-          {getError("email")}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="priority" className="text-sm text-gray-500">
-            Priority
-          </label>
-          <select
-            name="priority"
-            id="priority"
-            className="border border-gray-300 rounded-sm px-2 py-1 text-sm"
-            defaultValue={actionData?.values?.priority ?? ""}
-            onBlur={(e) => validateField("priority", e.currentTarget.value)}
-          >
-            <option value="low">low</option>
-            <option value="medium">medium</option>
-            <option value="high">high</option>
-          </select>
-          {getError("priority")}
-        </div>
+        <InputField
+          type="text"
+          name="title"
+          label="Title"
+          validateField={validateField}
+          errorMessage={clientErrors["title"] ?? serverErrors["title"]}
+          defaultValue={actionData?.data?.title ?? ""}
+        />
+        <TextareaField
+          name="message"
+          label="Message"
+          validateField={validateField}
+          errorMessage={clientErrors["message"] ?? serverErrors["message"]}
+          defaultValue={actionData?.data?.message ?? ""}
+        />
+        <SelectField
+          name="category"
+          label="Category"
+          errorMessage={clientErrors["category"] ?? serverErrors["category"]}
+          defaultValue={actionData?.data?.category ?? ""}
+          options={FEEDBACK_CATEGORIES}
+        />
+        <InputField
+          type="email"
+          name="email"
+          label="Email"
+          validateField={validateField}
+          errorMessage={clientErrors["email"] ?? serverErrors["email"]}
+          defaultValue={actionData?.data?.email ?? ""}
+        />
+        <SelectField
+          name="priority"
+          label="Priority"
+          errorMessage={clientErrors["priority"] ?? serverErrors["priority"]}
+          defaultValue={actionData?.data?.priority ?? ""}
+          options={FEEDBACK_PRIORITIES}
+        />
         <button
           type="submit"
           disabled={isSubmitting}
           className={`bg-black text-white px-4 py-2 rounded-sm my-4
           ${
-            !canSubmit
+            hasClientErrors
               ? "opacity-50 cursor-not-allowed"
               : "hover:cursor-pointer"
           }`}
