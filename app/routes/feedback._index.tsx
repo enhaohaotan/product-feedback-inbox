@@ -1,18 +1,69 @@
-import { Link } from "@remix-run/react";
+import { Form, Link, useSearchParams } from "@remix-run/react";
+import SelectFieldFilter from "../components/SelectFieldFilter";
+import {
+  FEEDBACK_CATEGORIES,
+  FEEDBACK_PRIORITIES,
+  PAGESIZE,
+} from "../constants/feedback.constants";
+import Button from "../components/Button";
+import InputFieldFilter from "../components/InputFieldFilter";
+import { useState } from "react";
+import { LoaderFunctionArgs } from "@remix-run/node";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const searchParams = url.searchParams;
+  const search = searchParams.get("q") ?? "";
+  const page = searchParams.get("page") ?? "1";
+  const pageSize = searchParams.get("pagesize") ?? "10";
+  const category = searchParams.get("category") ?? "";
+  const priority = searchParams.get("priority") ?? "";
+
+  return { search, page, pageSize, category, priority };
+}
 
 export default function FeedbackView() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   return (
-    <div className="flex flex-col gap-8 h-screen items-center justify-start my-8">
-      <header className="flex items-center justify-center relative w-1/2">
+    <div className="flex flex-col gap-8 h-screen items-center justify-start my-8 ">
+      <header className="flex items-center justify-center">
         <h1 className="text-2xl font-bold">Product Feedback</h1>
-        <Link
-          to="/feedback/new"
-          className="bg-black text-white px-2 rounded-sm text-xl hover:cursor-pointer hover:bg-gray-800 absolute right-0"
-        >
-          +
-        </Link>
       </header>
-      <main className="flex flex-col gap-4 w-1/2">
+      <main className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 items-start">
+          <Button asChild>
+            <Link to="/feedback/new">New Feedback</Link>
+          </Button>
+          <div className="flex gap-4 items-center">
+            <p className="text-sm text-gray-500 whitespace-nowrap">
+              Filter by:
+            </p>
+            <Form method="get" className="flex gap-4">
+              <input type="hidden" name="page" value="1" />
+              <InputFieldFilter name="q" placeholder="Search" />
+              <SelectFieldFilter
+                name="category"
+                label="Category"
+                options={FEEDBACK_CATEGORIES}
+              />
+              <SelectFieldFilter
+                name="priority"
+                label="Priority"
+                options={FEEDBACK_PRIORITIES}
+              />
+              <SelectFieldFilter
+                name="pagesize"
+                label="Page Size"
+                options={PAGESIZE}
+              />
+              <Button type="submit">Apply</Button>
+              <Button asChild>
+                <Link to="/feedback">Clear</Link>
+              </Button>
+            </Form>
+          </div>
+        </div>
         <h2 className="text-lg font-bold">Feedback list</h2>
       </main>
     </div>
