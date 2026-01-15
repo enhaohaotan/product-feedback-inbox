@@ -25,10 +25,16 @@ export const FeedbackSchema = CreateFeedbackSchema.extend({
   updated_at: z.date(),
 });
 
-export const FeedbackFiltersSchema = z.object({
-  q: z.string(),
-  page: z.number(),
-  pageSize: z.enum(PAGESIZE),
-  category: z.enum([...FEEDBACK_CATEGORIES, "all"]),
-  priority: z.enum([...FEEDBACK_PRIORITIES, "all"]),
-});
+export const FeedbackFiltersSchema = z
+  .object({
+    q: z.string(),
+    page: z.coerce.number().int().min(1),
+    pagesize: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .refine((val) => PAGESIZE.includes(val as (typeof PAGESIZE)[number])),
+    category: z.enum([...FEEDBACK_CATEGORIES, "all"]),
+    priority: z.enum([...FEEDBACK_PRIORITIES, "all"]),
+  })
+  .strict();

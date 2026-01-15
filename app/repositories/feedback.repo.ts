@@ -24,7 +24,7 @@ export async function createFeedbackRepo(createFeedback: CreateFeedback) {
 export async function getFeedbacksRepo({
   q,
   page,
-  pageSize,
+  pagesize,
   category,
   priority,
 }: FeedbackFilters) {
@@ -47,7 +47,7 @@ export async function getFeedbacksRepo({
       whereClause.push(`priority = $${values.length}`);
     }
 
-    const limit = Number(pageSize);
+    const limit = pagesize;
     const pageNum = Number(page);
     const offset = (Math.max(pageNum, 1) - 1) * limit;
 

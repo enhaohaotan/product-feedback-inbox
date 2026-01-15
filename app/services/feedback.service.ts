@@ -43,35 +43,43 @@ export async function createFeedbackService(rawFeedback: FormData) {
   }
 }
 
-export async function getFeedbacksService({
-  q,
-  page,
-  pageSize,
-  category,
-  priority,
-}: {
-  q: string;
-  page: number;
-  pageSize: string;
-  category: string;
-  priority: string;
-}) {
+export async function getFeedbacksService(searchParams: URLSearchParams) {
   try {
-    const parsedFeedbackFilters = FeedbackFiltersSchema.safeParse({
-      q,
-      page,
-      pageSize,
-      category,
-      priority,
-    });
+    const rawParams = Object.fromEntries(searchParams.entries());
+
+    {
+      /* If no params are provided, return to /feedback */
+    }
+    if (Object.keys(rawParams).length === 0) {
+      const feedbackFiltersData: FeedbackFilters = {
+        q: "",
+        page: 1,
+        pagesize: 10,
+        category: "all",
+        priority: "all",
+      };
+      const feedbacks = await getFeedbacksRepo(feedbackFiltersData);
+      return {
+        success: true,
+        data: feedbacks,
+        filters: feedbackFiltersData,
+      };
+    }
+
+    const parsedFeedbackFilters = FeedbackFiltersSchema.safeParse(rawParams);
     if (!parsedFeedbackFilters.success) {
       return {
         success: false,
         error: "INVALID_FILTERS",
       };
     }
+
     const feedbacks = await getFeedbacksRepo(parsedFeedbackFilters.data);
-    return { success: true, data: feedbacks };
+    return {
+      success: true,
+      data: feedbacks,
+      filters: parsedFeedbackFilters.data,
+    };
   } catch (error) {
     throw error;
   }

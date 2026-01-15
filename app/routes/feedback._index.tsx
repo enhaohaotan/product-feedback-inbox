@@ -2,6 +2,7 @@ import {
   Form,
   json,
   Link,
+  redirect,
   useLoaderData,
   useLocation,
   useSearchParams,
@@ -24,27 +25,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
 
-  const q = searchParams.get("q") ?? "";
-  const page = Number(searchParams.get("page") ?? "1");
-  const pageSize = searchParams.get("pagesize") ?? "10";
-  const category = searchParams.get("category") ?? "all";
-  const priority = searchParams.get("priority") ?? "all";
-
-  const feedbacks = await getFeedbacksService({
-    q,
-    page,
-    pageSize,
-    category,
-    priority,
-  });
+  const feedbacks = await getFeedbacksService(searchParams);
 
   if (!feedbacks.success) {
-    throw new Error(feedbacks.error);
+    if (feedbacks.error === "INVALID_FILTERS") {
+      console.log("INVALID_FILTERS");
+      throw redirect("/feedback");
+    }
   }
-
+  const { q, page, pagesize, category, priority } = feedbacks.filters;
   const total = feedbacks.data.length > 0 ? feedbacks.data[0].total : 0;
-  const start = (page - 1) * Number(pageSize) + 1;
-  const end = Math.min(page * Number(pageSize), total);
+  const start = (page - 1) * pagesize + 1;
+  const end = Math.min(page * pagesize, total);
 
   return json({
     feedbacks: feedbacks.data,
@@ -53,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     end,
     q,
     page,
-    pageSize,
+    pagesize,
     category,
     priority,
   });
@@ -69,7 +61,7 @@ export default function FeedbackView() {
     end,
     q,
     page,
-    pageSize,
+    pagesize,
     category,
     priority,
   } = useLoaderData<typeof loader>();
@@ -112,7 +104,7 @@ export default function FeedbackView() {
                 name="pagesize"
                 label="Page Size"
                 options={PAGESIZE}
-                defaultValue={pageSize}
+                defaultValue={pagesize}
               />
               <Button type="submit">Apply</Button>
               <Button
