@@ -65,7 +65,10 @@ export async function getFeedbacksService({
       priority,
     });
     if (!parsedFeedbackFilters.success) {
-      return { success: false, errors: parsedFeedbackFilters.error.issues };
+      return {
+        success: false,
+        error: "INVALID_FILTERS",
+      };
     }
     const feedbacks = await getFeedbacksRepo(parsedFeedbackFilters.data);
     return { success: true, data: feedbacks };

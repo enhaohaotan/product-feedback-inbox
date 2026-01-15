@@ -31,7 +31,7 @@ export default function FeedbackCard({
         <p className="text-xs text-gray-500">
           {new Intl.DateTimeFormat("da-DK", {
             year: "numeric",
-            month: "2-digit",
+            month: "short",
             day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",

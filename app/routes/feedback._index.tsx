@@ -39,10 +39,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 
   if (!feedbacks.success) {
-    throw new Error(feedbacks.errors.join(", "));
+    throw new Error(feedbacks.error);
   }
 
-  const total = feedbacks.data[0].total;
+  const total = feedbacks.data.length > 0 ? feedbacks.data[0].total : 0;
   const start = (page - 1) * Number(pageSize) + 1;
   const end = Math.min(page * Number(pageSize), total);
 
@@ -149,7 +149,9 @@ export default function FeedbackView() {
               ))}
             </div>
           ) : (
-            <p>No feedbacks found</p>
+            <div className="flex items-center justify-center mt-20">
+              <p className="text-gray-500">No feedbacks found</p>
+            </div>
           )}
         </div>
       </main>
