@@ -9,36 +9,43 @@ import {
 } from "@remix-run/react";
 import SelectFieldFilter from "../components/SelectFieldFilter";
 import {
-  FEEDBACK_CATEGORIES,
-  FEEDBACK_PRIORITIES,
-  PAGESIZE,
+  FEEDBACK_CATEGORIES_OPTIONS,
+  FEEDBACK_PRIORITIES_OPTIONS,
+  PAGE_SIZE,
 } from "../constants/feedback.constants";
 import Button from "../components/Button";
 import InputFieldFilter from "../components/InputFieldFilter";
 import { useEffect, useState } from "react";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import FeedbackCard from "../components/FeedbackCard";
-import { Feedback } from "../types/Feedback";
-import { getFeedbacksService } from "../services/feedback.service";
+import { Feedback, FeedbackFilters } from "../types/Feedback";
+import * as Service from "../services/feedback.service";
+import { FeedbackFiltersSchema } from "../schemas/feedback.schema";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
-
-  const feedbacks = await getFeedbacksService(searchParams);
-
-  if (!feedbacks.success) {
-    if (feedbacks.error === "INVALID_FILTERS") {
-      console.log("INVALID_FILTERS");
-      throw redirect("/feedback");
+  const rawParams = Object.fromEntries(searchParams.entries());
+  for (const [key, value] of Object.entries(rawParams)) {
+    if (value === "") {
+      delete rawParams[key];
     }
   }
-  const { q, page, pagesize, category, priority } = feedbacks.filters;
-  const totalCount = feedbacks.data.length > 0 ? feedbacks.data[0].total : 0;
+  const parsedParams = FeedbackFiltersSchema.safeParse(rawParams);
+  if (!parsedParams.success) {
+    throw redirect("/feedback");
+  }
+  const feedbacks = await Service.getFeedbacks(parsedParams.data);
+  if (!feedbacks.success) {
+    throw redirect("/feedback");
+  }
+  const { q, page, pagesize, category, priority } = parsedParams.data;
+
+  console.log(parsedParams.data);
 
   return json({
     items: feedbacks.data,
-    totalCount,
+    totalCount: feedbacks.totalCount,
     page,
     pagesize,
     q,
@@ -69,9 +76,9 @@ export default function FeedbackView() {
   function buildPageUrl(targetPage: number) {
     const params = new URLSearchParams();
     params.set("page", targetPage.toString());
-    params.set("q", q);
-    params.set("category", category);
-    params.set("priority", priority);
+    params.set("q", q ?? "");
+    params.set("category", category ?? "");
+    params.set("priority", priority ?? "");
     params.set("pagesize", pagesize.toString());
     return `${params.toString()}`;
   }
@@ -89,7 +96,7 @@ export default function FeedbackView() {
       <main className="flex flex-col gap-2 w-full lg:px-32 px-16 max-w-7xl">
         {/* Filter Bar */}
         <div className="flex flex-col gap-4 items-start w-full">
-          <Button asChild>
+          <Button>
             <Link to="/feedback/new">New Feedback</Link>
           </Button>
           <div className="flex md:gap-4 md:items-center items-start flex-col md:flex-row w-full">
@@ -109,20 +116,20 @@ export default function FeedbackView() {
               <SelectFieldFilter
                 name="category"
                 label="Category"
-                options={["all", ...FEEDBACK_CATEGORIES]}
-                defaultValue={category}
+                options={FEEDBACK_CATEGORIES_OPTIONS}
+                defaultValue={category ?? "all"}
               />
               <SelectFieldFilter
                 name="priority"
                 label="Priority"
-                options={["all", ...FEEDBACK_PRIORITIES]}
-                defaultValue={priority}
+                options={FEEDBACK_PRIORITIES_OPTIONS}
+                defaultValue={priority ?? "all"}
               />
               <SelectFieldFilter
                 name="pagesize"
                 label="Page Size"
-                options={PAGESIZE}
-                defaultValue={pagesize}
+                options={PAGE_SIZE}
+                defaultValue={pagesize.toString()}
               />
               <Button type="submit">Apply</Button>
               <Button

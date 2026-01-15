@@ -1,12 +1,12 @@
 import * as feedbackRepo from "../repositories/feedback.repo";
-import { getFeedbacksRepo } from "../repositories/feedback.repo";
+import * as Repo from "../repositories/feedback.repo";
 import {
   CreateFeedbackSchema,
   FeedbackFiltersSchema,
 } from "../schemas/feedback.schema";
 import { FeedbackFilters } from "../types/Feedback";
 
-export async function createFeedbackService(rawFeedback: FormData) {
+export async function createFeedback(rawFeedback: FormData) {
   const rawFeedbackData: Record<string, FormDataEntryValue> = {};
   rawFeedback.forEach((value, key) => {
     rawFeedbackData[key] = value;
@@ -27,7 +27,7 @@ export async function createFeedbackService(rawFeedback: FormData) {
   }
 
   try {
-    const feedbackData = await feedbackRepo.createFeedbackRepo(
+    const feedbackData = await Repo.createFeedback(
       parsedCreateFeedbackData.data
     );
     return { success: true, data: feedbackData };
@@ -43,42 +43,14 @@ export async function createFeedbackService(rawFeedback: FormData) {
   }
 }
 
-export async function getFeedbacksService(searchParams: URLSearchParams) {
+export async function getFeedbacks(feedbackFiltersData: FeedbackFilters) {
   try {
-    const rawParams = Object.fromEntries(searchParams.entries());
-
-    {
-      /* If no params are provided, return to /feedback */
-    }
-    if (Object.keys(rawParams).length === 0) {
-      const feedbackFiltersData: FeedbackFilters = {
-        q: "",
-        page: 1,
-        pagesize: 10,
-        category: "all",
-        priority: "all",
-      };
-      const feedbacks = await getFeedbacksRepo(feedbackFiltersData);
-      return {
-        success: true,
-        data: feedbacks,
-        filters: feedbackFiltersData,
-      };
-    }
-
-    const parsedFeedbackFilters = FeedbackFiltersSchema.safeParse(rawParams);
-    if (!parsedFeedbackFilters.success) {
-      return {
-        success: false,
-        error: "INVALID_FILTERS",
-      };
-    }
-
-    const feedbacks = await getFeedbacksRepo(parsedFeedbackFilters.data);
+    const feedbacks = await Repo.getFeedbacks(feedbackFiltersData);
+    const totalCount = feedbacks.length > 0 ? feedbacks[0].total : 0;
     return {
       success: true,
       data: feedbacks,
-      filters: parsedFeedbackFilters.data,
+      totalCount,
     };
   } catch (error) {
     throw error;

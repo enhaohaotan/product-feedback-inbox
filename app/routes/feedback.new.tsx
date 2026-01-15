@@ -3,7 +3,7 @@ import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { CreateFeedbackSchema } from "../schemas/feedback.schema";
 import { CreateFeedback } from "../types/Feedback";
 import { useEffect, useState } from "react";
-import { createFeedbackService } from "../services/feedback.service";
+import * as Service from "../services/feedback.service";
 import InputField from "../components/InputField";
 import SelectField from "../components/SelectField";
 import TextareaField from "../components/TextareaField";
@@ -14,7 +14,7 @@ import {
 
 export async function action({ request }: ActionFunctionArgs) {
   const fd = await request.formData();
-  const result = await createFeedbackService(fd);
+  const result = await Service.createFeedback(fd);
   if (!result.success) {
     return json(
       { serverErrors: result.serverErrors, data: result.data },
@@ -33,11 +33,7 @@ export default function NewFeedback() {
   const [hasClientErrors, setHasClientErrors] = useState(false);
 
   useEffect(() => {
-    if (Object.keys(clientErrors).length > 0) {
-      setHasClientErrors(true);
-    } else {
-      setHasClientErrors(false);
-    }
+    setHasClientErrors(Object.keys(clientErrors).length > 0);
   }, [clientErrors]);
 
   function validateAllFields(form: HTMLFormElement) {

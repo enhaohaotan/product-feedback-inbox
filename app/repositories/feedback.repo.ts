@@ -1,6 +1,6 @@
 import { CreateFeedback, FeedbackFilters } from "../types/Feedback";
 import { query } from "../db/db.server";
-export async function createFeedbackRepo(createFeedback: CreateFeedback) {
+export async function createFeedback(createFeedback: CreateFeedback) {
   try {
     const result = await query(
       `INSERT INTO feedbacks (title, message, category, email, priority) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
@@ -21,7 +21,7 @@ export async function createFeedbackRepo(createFeedback: CreateFeedback) {
   }
 }
 
-export async function getFeedbacksRepo({
+export async function getFeedbacks({
   q,
   page,
   pagesize,
@@ -38,11 +38,11 @@ export async function getFeedbacksRepo({
         `title ILIKE $${values.length} OR message ILIKE $${values.length}`
       );
     }
-    if (category !== "all") {
+    if (category) {
       values.push(category);
       whereClause.push(`category = $${values.length}`);
     }
-    if (priority !== "all") {
+    if (priority) {
       values.push(priority);
       whereClause.push(`priority = $${values.length}`);
     }

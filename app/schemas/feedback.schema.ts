@@ -1,8 +1,10 @@
 import { z } from "zod";
 import {
   FEEDBACK_CATEGORIES,
+  FEEDBACK_CATEGORIES_OPTIONS,
   FEEDBACK_PRIORITIES,
-  PAGESIZE,
+  FEEDBACK_PRIORITIES_OPTIONS,
+  PAGE_SIZE,
 } from "../constants/feedback.constants";
 
 export const CreateFeedbackSchema = z.object({
@@ -27,14 +29,21 @@ export const FeedbackSchema = CreateFeedbackSchema.extend({
 
 export const FeedbackFiltersSchema = z
   .object({
-    q: z.string(),
-    page: z.coerce.number().int().min(1),
+    q: z.string().default(""),
+    page: z.coerce.number().int().min(1).default(1),
     pagesize: z.coerce
       .number()
       .int()
       .min(1)
-      .refine((val) => PAGESIZE.includes(val as (typeof PAGESIZE)[number])),
-    category: z.enum([...FEEDBACK_CATEGORIES, "all"]),
-    priority: z.enum([...FEEDBACK_PRIORITIES, "all"]),
+      .refine((val) => PAGE_SIZE.includes(val as (typeof PAGE_SIZE)[number]))
+      .default(10),
+    category: z
+      .enum(FEEDBACK_CATEGORIES_OPTIONS)
+      .default(null)
+      .transform((val) => (val === "all" ? null : val)),
+    priority: z
+      .enum(FEEDBACK_PRIORITIES_OPTIONS)
+      .default(null)
+      .transform((val) => (val === "all" ? null : val)),
   })
   .strict();
