@@ -10,7 +10,7 @@ export default function FeedbackCard({
   return (
     <div
       key={key}
-      className="flex flex-col border border-gray-300 rounded-md py-2 px-4 w-80 justify-between"
+      className="flex flex-col border border-gray-300 rounded-md py-2 px-4 w-full justify-between min-w-40"
     >
       <div className="flex flex-col">
         <h3 className="text-lg font-bold truncate">{feedback.title}</h3>

@@ -86,17 +86,20 @@ export default function FeedbackView() {
       <header className="flex items-center justify-center">
         <h1 className="text-2xl font-bold">Product Feedback</h1>
       </header>
-      <main className="flex flex-col gap-2">
+      <main className="flex flex-col gap-2 w-full lg:px-32 px-16 max-w-7xl">
         {/* Filter Bar */}
-        <div className="flex flex-col gap-4 items-start">
+        <div className="flex flex-col gap-4 items-start w-full">
           <Button asChild>
             <Link to="/feedback/new">New Feedback</Link>
           </Button>
-          <div className="flex gap-4 items-center">
+          <div className="flex md:gap-4 md:items-center items-start flex-col md:flex-row w-full">
             <p className="text-sm text-gray-500 whitespace-nowrap">
               Filter by:
             </p>
-            <Form method="get" className="flex gap-4">
+            <Form
+              method="get"
+              className="flex flex-col md:flex-row md:gap-4 gap-1 w-full"
+            >
               <input type="hidden" name="page" value="1" />
               <InputFieldFilter
                 name="q"
@@ -143,7 +146,7 @@ export default function FeedbackView() {
         {/* Feedback List */}
         <div>
           {items.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-2">
               {items.map((feedback) => (
                 <FeedbackCard
                   key={feedback.id}
