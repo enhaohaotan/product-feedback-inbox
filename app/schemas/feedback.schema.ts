@@ -27,23 +27,21 @@ export const FeedbackSchema = CreateFeedbackSchema.extend({
   updated_at: z.date(),
 });
 
-export const FeedbackFiltersSchema = z
-  .object({
-    q: z.string().default(""),
-    page: z.coerce.number().int().min(1).default(1),
-    pagesize: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .refine((val) => PAGE_SIZE.includes(val as (typeof PAGE_SIZE)[number]))
-      .default(10),
-    category: z
-      .enum(FEEDBACK_CATEGORIES_OPTIONS)
-      .default(null)
-      .transform((val) => (val === "all" ? null : val)),
-    priority: z
-      .enum(FEEDBACK_PRIORITIES_OPTIONS)
-      .default(null)
-      .transform((val) => (val === "all" ? null : val)),
-  })
-  .strict();
+export const FeedbackFiltersSchema = z.object({
+  q: z.string().default(""),
+  page: z.coerce.number().int().min(1).default(1),
+  pagesize: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .refine((val) => PAGE_SIZE.includes(val as (typeof PAGE_SIZE)[number]))
+    .default(10),
+  category: z
+    .enum(FEEDBACK_CATEGORIES_OPTIONS)
+    .default(null)
+    .transform((val) => (val === "all" ? null : val)),
+  priority: z
+    .enum(FEEDBACK_PRIORITIES_OPTIONS)
+    .default(null)
+    .transform((val) => (val === "all" ? null : val)),
+});
