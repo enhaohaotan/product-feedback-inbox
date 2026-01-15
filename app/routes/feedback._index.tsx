@@ -60,6 +60,12 @@ export default function FeedbackView() {
   const prevPage = Math.max(1, page - 1);
   const nextPage = Math.min(totalPages, page + 1);
 
+  const [currentPage, setCurrentPage] = useState(page);
+
+  useEffect(() => {
+    setCurrentPage(page);
+  }, [page, searchParams]);
+
   function buildPageUrl(targetPage: number) {
     const params = new URLSearchParams();
     params.set("page", targetPage.toString());
@@ -67,7 +73,12 @@ export default function FeedbackView() {
     params.set("category", category);
     params.set("priority", priority);
     params.set("pagesize", pagesize.toString());
-    return `/feedback?${params.toString()}`;
+    return `${params.toString()}`;
+  }
+
+  function commitPage(targetPage: number) {
+    const params = buildPageUrl(targetPage);
+    setSearchParams(params);
   }
 
   return (
@@ -149,7 +160,7 @@ export default function FeedbackView() {
         {/* Pagination */}
         <div className="flex items-center justify-center gap-4 my-6">
           <Link
-            to={buildPageUrl(prevPage)}
+            to={`/feedback?${buildPageUrl(prevPage)}`}
             className={`text-sm underline ${
               page === 1
                 ? "opacity-50 cursor-not-allowed "
@@ -158,11 +169,36 @@ export default function FeedbackView() {
           >
             Previous
           </Link>
-          <p className="text-sm">
-            Page {page} of {totalPages}
-          </p>
+          <div className="flex items-center gap-2 text-sm">
+            <span>Page</span>
+            <input
+              type="text"
+              name="page"
+              value={currentPage}
+              className="border border-gray-300 rounded-sm px-1 py-1 text-center w-8"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (!/^\d*$/.test(value) || Number(value) < 1) {
+                  setCurrentPage(1);
+                } else if (Number(value) > totalPages) {
+                  setCurrentPage(totalPages);
+                } else {
+                  setCurrentPage(Number(value));
+                }
+              }}
+              onBlur={() => {
+                commitPage(currentPage);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  commitPage(currentPage);
+                }
+              }}
+            />
+            <span>of {totalPages}</span>
+          </div>
           <Link
-            to={buildPageUrl(nextPage)}
+            to={`/feedback?${buildPageUrl(nextPage)}`}
             className={`text-sm underline ${
               page === totalPages
                 ? "opacity-50 cursor-not-allowed "
