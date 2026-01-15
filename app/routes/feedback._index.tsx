@@ -34,18 +34,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
   const { q, page, pagesize, category, priority } = feedbacks.filters;
-  const total = feedbacks.data.length > 0 ? feedbacks.data[0].total : 0;
-  const start = (page - 1) * pagesize + 1;
-  const end = Math.min(page * pagesize, total);
+  const totalCount = feedbacks.data.length > 0 ? feedbacks.data[0].total : 0;
 
   return json({
-    feedbacks: feedbacks.data,
-    total,
-    start,
-    end,
-    q,
+    items: feedbacks.data,
+    totalCount,
     page,
     pagesize,
+    q,
     category,
     priority,
   });
@@ -54,17 +50,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function FeedbackView() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const {
-    feedbacks,
-    total,
-    start,
-    end,
-    q,
-    page,
-    pagesize,
-    category,
-    priority,
-  } = useLoaderData<typeof loader>();
+  const { items, totalCount, page, pagesize, q, category, priority } =
+    useLoaderData<typeof loader>();
+
+  const start = (page - 1) * pagesize + 1;
+  const end = Math.min(page * pagesize, totalCount);
+
+  const totalPages = Math.ceil(totalCount / pagesize);
+  const prevPage = Math.max(1, page - 1);
+  const nextPage = Math.min(totalPages, page + 1);
+
+  function buildPageUrl(targetPage: number) {
+    const params = new URLSearchParams();
+    params.set("page", targetPage.toString());
+    params.set("q", q);
+    params.set("category", category);
+    params.set("priority", priority);
+    params.set("pagesize", pagesize.toString());
+    return `/feedback?${params.toString()}`;
+  }
 
   return (
     <div className="flex flex-col gap-8 h-screen items-center justify-start my-8 ">
@@ -110,12 +114,8 @@ export default function FeedbackView() {
               <Button
                 type="reset"
                 onClick={() => {
-                  searchParams.delete("page");
-                  searchParams.delete("q");
-                  searchParams.delete("category");
-                  searchParams.delete("priority");
-                  searchParams.delete("pagesize");
-                  setSearchParams(searchParams);
+                  const params = new URLSearchParams();
+                  setSearchParams(params);
                 }}
               >
                 Clear
@@ -126,14 +126,14 @@ export default function FeedbackView() {
         {/* Results Summary */}
         <div>
           <p className="text-sm text-gray-500 mt-6">
-            Showing {start}-{end} of {total} results
+            Showing {start}-{end} of {totalCount} results
           </p>
         </div>
         {/* Feedback List */}
         <div>
-          {feedbacks.length > 0 ? (
+          {items.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
-              {feedbacks.map((feedback) => (
+              {items.map((feedback) => (
                 <FeedbackCard
                   key={feedback.id}
                   feedback={feedback as Feedback}
@@ -145,6 +145,32 @@ export default function FeedbackView() {
               <p className="text-gray-500">No feedbacks found</p>
             </div>
           )}
+        </div>
+        {/* Pagination */}
+        <div className="flex items-center justify-center gap-4 my-6">
+          <Link
+            to={buildPageUrl(prevPage)}
+            className={`text-sm underline ${
+              page === 1
+                ? "opacity-50 cursor-not-allowed "
+                : "hover:cursor-pointer"
+            }`}
+          >
+            Previous
+          </Link>
+          <p className="text-sm">
+            Page {page} of {totalPages}
+          </p>
+          <Link
+            to={buildPageUrl(nextPage)}
+            className={`text-sm underline ${
+              page === totalPages
+                ? "opacity-50 cursor-not-allowed "
+                : "hover:cursor-pointer"
+            }`}
+          >
+            Next
+          </Link>
         </div>
       </main>
     </div>
