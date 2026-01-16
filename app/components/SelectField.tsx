@@ -1,4 +1,10 @@
+import {
+  FEEDBACK_CATEGORIES,
+  FEEDBACK_PRIORITIES,
+} from "../constants/feedback.constants";
 import ErrorMessage from "./ErrorMessage";
+
+type Options = typeof FEEDBACK_CATEGORIES | typeof FEEDBACK_PRIORITIES;
 
 export default function SelectField({
   name,
@@ -6,6 +12,12 @@ export default function SelectField({
   errorMessage,
   defaultValue,
   options,
+}: {
+  name: string;
+  label: string;
+  errorMessage: string;
+  defaultValue: string;
+  options: Options;
 }) {
   return (
     <div className="flex flex-col gap-1">

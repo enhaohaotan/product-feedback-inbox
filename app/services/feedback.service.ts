@@ -1,7 +1,12 @@
 import * as feedbackRepo from "../repositories/feedback.repo";
-import { CreateFeedbackSchema } from "../schemas/feedback.schema";
+import * as Repo from "../repositories/feedback.repo";
+import {
+  CreateFeedbackSchema,
+  FeedbackFiltersSchema,
+} from "../schemas/feedback.schema";
+import { FeedbackFilters } from "../types/Feedback";
 
-export async function createFeedbackService(rawFeedback: FormData) {
+export async function createFeedback(rawFeedback: FormData) {
   const rawFeedbackData: Record<string, FormDataEntryValue> = {};
   rawFeedback.forEach((value, key) => {
     rawFeedbackData[key] = value;
@@ -22,7 +27,7 @@ export async function createFeedbackService(rawFeedback: FormData) {
   }
 
   try {
-    const feedbackData = await feedbackRepo.createFeedbackRepo(
+    const feedbackData = await Repo.createFeedback(
       parsedCreateFeedbackData.data
     );
     return { success: true, data: feedbackData };
@@ -34,6 +39,20 @@ export async function createFeedbackService(rawFeedback: FormData) {
         data: parsedCreateFeedbackData.data,
       };
     }
+    throw error;
+  }
+}
+
+export async function getFeedbacks(feedbackFiltersData: FeedbackFilters) {
+  try {
+    const feedbacks = await Repo.getFeedbacks(feedbackFiltersData);
+    const totalCount = feedbacks.length > 0 ? feedbacks[0].total : 0;
+    return {
+      success: true,
+      data: feedbacks,
+      totalCount,
+    };
+  } catch (error) {
     throw error;
   }
 }

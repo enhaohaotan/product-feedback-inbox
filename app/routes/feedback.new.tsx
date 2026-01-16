@@ -3,7 +3,7 @@ import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { CreateFeedbackSchema } from "../schemas/feedback.schema";
 import { CreateFeedback } from "../types/Feedback";
 import { useEffect, useState } from "react";
-import { createFeedbackService } from "../services/feedback.service";
+import * as Service from "../services/feedback.service";
 import InputField from "../components/InputField";
 import SelectField from "../components/SelectField";
 import TextareaField from "../components/TextareaField";
@@ -14,7 +14,7 @@ import {
 
 export async function action({ request }: ActionFunctionArgs) {
   const fd = await request.formData();
-  const result = await createFeedbackService(fd);
+  const result = await Service.createFeedback(fd);
   if (!result.success) {
     return json(
       { serverErrors: result.serverErrors, data: result.data },
@@ -32,6 +32,10 @@ export default function NewFeedback() {
   const serverErrors = actionData?.serverErrors ?? {};
   const [hasClientErrors, setHasClientErrors] = useState(false);
 
+  useEffect(() => {
+    setHasClientErrors(Object.keys(clientErrors).length > 0);
+  }, [clientErrors]);
+
   function validateAllFields(form: HTMLFormElement) {
     const fd = new FormData(form);
     const values = {
@@ -44,11 +48,9 @@ export default function NewFeedback() {
     const result = CreateFeedbackSchema.safeParse(values);
     if (result.success) {
       setClientErrors({});
-      setHasClientErrors(false);
     }
     for (const issue of result.error.issues) {
       setClientErrors((prev) => ({ ...prev, [issue.path[0]]: issue.message }));
-      setHasClientErrors(true);
     }
     return false;
   }
@@ -66,11 +68,10 @@ export default function NewFeedback() {
       }
       return next;
     });
-    setHasClientErrors(true);
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen ">
+    <div className="flex flex-col items-center h-screen justify-start my-8">
       <h1 className="text-2xl font-bold my-8">New Feedback</h1>
       <Form
         method="post"
