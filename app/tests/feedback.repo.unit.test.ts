@@ -19,7 +19,7 @@ it("calls query the correct amount of times when insertFeedback runs", async () 
 
   (query as Mock).mockResolvedValue([
     {
-      id: "11111111-1111-1111-1111-111111111111",
+      id: "mock-id",
       ...input,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
