@@ -96,9 +96,14 @@ export default function FeedbackView() {
       <main className="flex flex-col gap-2 w-full lg:px-32 px-16 max-w-7xl">
         {/* Filter Bar */}
         <div className="flex flex-col gap-4 items-start w-full">
-          <Button>
-            <Link to="/feedback/new">New Feedback</Link>
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button>
+              <Link to="/feedback/new">New Feedback</Link>
+            </Button>
+            <Button>
+              <Link to="/feedback/news">New Feedbacks</Link>
+            </Button>
+          </div>
           <div className="flex md:gap-4 md:items-center items-start flex-col md:flex-row w-full">
             <p className="text-sm text-gray-500 whitespace-nowrap">
               Filter by:

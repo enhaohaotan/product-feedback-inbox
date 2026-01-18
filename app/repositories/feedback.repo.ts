@@ -1,5 +1,6 @@
 import { CreateFeedback, FeedbackFilters } from "../types/Feedback";
 import { query } from "../db/db.server";
+import Feedback from "../routes/feedback";
 export async function createFeedback(createFeedback: CreateFeedback) {
   try {
     const result = await query(
@@ -13,6 +14,32 @@ export async function createFeedback(createFeedback: CreateFeedback) {
       ]
     );
     return result[0];
+  } catch (error) {
+    if (error.code === "23505") {
+      throw new Error("EMAIL_ALREADY_EXISTS");
+    }
+    throw error;
+  }
+}
+
+export async function createFeedbacks(createFeedbacks: CreateFeedback[]) {
+  try {
+    const values = [];
+    const placeholders = [];
+
+    createFeedbacks.forEach((fb, index) => {
+      const base = index * 5;
+      placeholders.push(
+        `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`
+      );
+      values.push(fb.title, fb.message, fb.category, fb.email, fb.priority);
+    });
+    const results = await query(
+      `INSERT INTO feedbacks (title, message, category, email, priority) 
+       VALUES ${placeholders.join(", ")} RETURNING *`,
+      values
+    );
+    return results;
   } catch (error) {
     if (error.code === "23505") {
       throw new Error("EMAIL_ALREADY_EXISTS");
