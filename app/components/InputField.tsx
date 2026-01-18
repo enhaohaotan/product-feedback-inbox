@@ -5,7 +5,7 @@ export default function InputField({
   name,
   label,
   validateField,
-  errorMessage,
+  errorMessage = "",
   defaultValue,
 }) {
   return (
@@ -21,7 +21,7 @@ export default function InputField({
         defaultValue={defaultValue}
         onBlur={(e) => validateField(name, e.currentTarget.value)}
       />
-      <ErrorMessage message={errorMessage} />
+      {errorMessage && <ErrorMessage message={errorMessage} />}
     </div>
   );
 }
